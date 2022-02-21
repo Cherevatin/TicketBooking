@@ -4,11 +4,11 @@ namespace TicketBooking
 {
     internal class CinemaScenarious
     {
-
         private Cinema _cinema;
         private string _filmListPath;
         private string _bookingListPath;
         private string _cancelBookingListPath;
+
         public CinemaScenarious(Cinema cinema, string filmsPath, string bookingPath, string cancelBookingPath)
         {
             _cinema = cinema;
@@ -17,24 +17,47 @@ namespace TicketBooking
             _cancelBookingListPath = cancelBookingPath;
         }
 
-        public void CreateListOfFilms()
+        public void ReadFromFiles()
         {
-
-
-                using (StreamReader r = new StreamReader(_filmListPath))
+            using (StreamReader r = new StreamReader(_filmListPath))
+            {
+                string jsonString = r.ReadToEnd();
+                try
                 {
-                    string jsonString = r.ReadToEnd();
-                    try
-                    {
-                        _cinema.AddFilms(JsonSerializer.Deserialize<List<Film>>(jsonString));
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e);
-                    }
-
+                    _cinema.AddFilms(JsonSerializer.Deserialize<List<Film>>(jsonString));
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
                 }
 
+            }
+            using (StreamReader r = new StreamReader(_bookingListPath))
+            {
+                string jsonString = r.ReadToEnd();
+                try
+                {
+                    _cinema.AddBookings(JsonSerializer.Deserialize<List<BookingItem>>(jsonString));
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
+
+            }
+            using (StreamReader r = new StreamReader(_cancelBookingListPath))
+            {
+                string jsonString = r.ReadToEnd();
+                try
+                {
+                    _cinema.AddUnbookings(JsonSerializer.Deserialize<List<BookingItem>>(jsonString));
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
+
+            }
         }
 
         public void PrintFilms(List <Film> films = null)
@@ -80,7 +103,7 @@ namespace TicketBooking
             lengthOfLongestTitle = "Film title".Length < lengthOfLongestTitle ? lengthOfLongestTitle : "Film title".Length;
             lengthOfLongestTitle = Convert.ToInt32(-1.3 * lengthOfLongestTitle);
 
-            int lengthOfLongestSurname = Convert.ToInt32((-1.3) * bookings.Max(f => f.Surname.Length));
+            int lengthOfLongestSurname = bookings.Max(f => f.Surname.Length);
             lengthOfLongestSurname = "Surname".Length < Math.Abs(lengthOfLongestSurname) ? lengthOfLongestSurname : "Surname".Length;
             lengthOfLongestSurname = Convert.ToInt32(-1.3 * lengthOfLongestSurname);
 
@@ -104,12 +127,12 @@ namespace TicketBooking
             }
         }
 
-        public void WriteToFile<T>(T obj, string path, bool append)
+        public void WriteToFile<T>(T obj, string path)
         {
 
             string jsonString = JsonSerializer.Serialize(obj);
 
-            using (StreamWriter w = new StreamWriter(path, append: append))
+            using (StreamWriter w = new StreamWriter(path))
             {
                 w.WriteLine(jsonString);
             }
@@ -165,6 +188,7 @@ namespace TicketBooking
             {
             }
         }
+
         public void SearchByName()
         {
             Console.Clear();
@@ -315,7 +339,7 @@ namespace TicketBooking
             {
                 _cinema.UpdateList(sortedFilms);
 
-                WriteToFile(_cinema.Films, _filmListPath, false);
+                WriteToFile(_cinema.Films, _filmListPath);
             }
             return;
         }
@@ -340,7 +364,7 @@ namespace TicketBooking
 
                     _cinema.AddFilm(title, freeSeats, genre);
 
-                    WriteToFile(_cinema.Films, _filmListPath, true);
+                    WriteToFile(_cinema.Films, _filmListPath);
 
                     Console.WriteLine("  New film added successfully!");
 
@@ -354,6 +378,31 @@ namespace TicketBooking
                     Console.WriteLine("  Number must be int. Try again.");
                 }
             }
+        }
+
+        public void AddingComment(Film film)
+        {
+            Console.Clear();
+
+            Console.WriteLine("  ### ADDING COMMENT ####\n\n");
+
+            Console.Write("  Enter your name: ");
+            string authorName = Console.ReadLine();
+
+            Console.Write("  Enter your rating: ");
+            double rating = Convert.ToDouble(Console.ReadLine());
+
+            Console.Write("  Enter your comment: ");
+            string content = Console.ReadLine();
+
+            film.AddComment(film.Id, authorName, rating, content);
+            WriteToFile(_cinema.Films,_filmListPath);
+
+            Console.WriteLine("\n\n  Comment added successfully!");
+
+            Console.WriteLine("\n  Press Backspace to back to the main menu\n");
+            while (Console.ReadKey().Key != ConsoleKey.Backspace) { }
+            return;
         }
 
         public void BookTicket(List<Film> films = null)
@@ -388,10 +437,10 @@ namespace TicketBooking
                     else
                     {
                         bookedFilm.BookSeats(numberOfseats);
-                        WriteToFile(_cinema.Films, _filmListPath, false);
+                        WriteToFile(_cinema.Films, _filmListPath);
 
                         _cinema.MakeBooking(name, surname, phone, bookedFilm.Id, numberOfseats);
-                        WriteToFile(_cinema.BookingList, _bookingListPath, false);
+                        WriteToFile(_cinema.BookingList, _bookingListPath);
 
                         Console.WriteLine("\n  Booking successfully!\n");
                     }
@@ -445,8 +494,8 @@ namespace TicketBooking
 
                                 _cinema.CancelBooking(itemToUnbook.FilmId, itemToUnbook.NumberOfSeats, itemToUnbook.Phone);
 
-                                WriteToFile(_cinema.BookingList, _bookingListPath, false);
-                                WriteToFile(_cinema.UnbookingList, _cancelBookingListPath, false);
+                                WriteToFile(_cinema.BookingList, _bookingListPath);
+                                WriteToFile(_cinema.UnbookingList, _cancelBookingListPath);
 
                                 Console.WriteLine("\n  Booking canceled successfully!");
                                 break;
@@ -486,6 +535,7 @@ namespace TicketBooking
 
 
         }
+
         public void ReadComments(List<Film> films = null)
         {
 
@@ -499,7 +549,7 @@ namespace TicketBooking
             {
                 foreach (var (comment, index) in film.GetComments().Select((comment, index) => (comment, index)))
                 {
-                    Console.WriteLine("  #" + index + 1 + "\n" +
+                    Console.WriteLine("  #" + (index + 1) + "\n" +
                                       "  Author: " + comment.AuthorName + "\n" +
                                       "  Rate: " + comment.Rating + "\n" +
                                       "  Content: " + comment.Content + "\n");
@@ -571,6 +621,7 @@ namespace TicketBooking
                 return bookings.First();
             }
         }
+
         public T ChooseByNumber<T>(List<T> List)
         {
             T item;
@@ -589,8 +640,7 @@ namespace TicketBooking
             }
         }
 
-
-        public void FilmTicketList(List<Film> films)
+        public void ListOfBookings(List<Film> films)
         {
             Film film = ChooseFilm(films);
 
@@ -634,31 +684,6 @@ namespace TicketBooking
             return;
         }
 
-
-        public void AddingComment(Film film)
-        {
-            Console.Clear();
-
-            Console.WriteLine("  ### ADDING COMMENT ####\n\n");
-
-            Console.Write("  Enter your name: ");
-            string authorName = Console.ReadLine();
-
-            Console.Write("  Enter your rating: ");
-            double rating = Convert.ToDouble(Console.ReadLine());
-
-            Console.Write("  Enter your comment: ");
-            string content = Console.ReadLine();
-
-            film.AddComment(film.Id, authorName, rating, content);
-
-            Console.WriteLine("\n\n  Comment added successfully!");
-
-            Console.WriteLine("\n  Press Backspace to back to the main menu\n");
-            while (Console.ReadKey().Key != ConsoleKey.Backspace) { }
-            return;
-        }
-
         public void SearchOkMenu(List<Film> films)
         {
             Console.WriteLine("\n\n\n  Choose option:\n\n" +
@@ -683,7 +708,7 @@ namespace TicketBooking
 
                     case ConsoleKey.D3:
 
-                        FilmTicketList(films);
+                        ListOfBookings(films);
                         return;
 
                     case ConsoleKey.Backspace:
@@ -754,7 +779,5 @@ namespace TicketBooking
             }
         }
     }
-
-
 }
 

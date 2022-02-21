@@ -20,7 +20,7 @@ namespace TicketBooking
                 if (File.Exists(filmsDataPath))
                 {
                     if (!listAlredyExists) 
-                        cinemaScenarious.CreateListOfFilms();
+                        cinemaScenarious.ReadFromFiles();
 
                     while (true)
                     {
@@ -113,8 +113,6 @@ namespace TicketBooking
                     }
                 }
             }
-
         }
     }
-    
 }

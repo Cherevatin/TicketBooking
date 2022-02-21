@@ -1,12 +1,8 @@
-﻿using System.Text.Json;
-
-namespace TicketBooking
+﻿namespace TicketBooking
 {
     internal class Cinema 
     {
         public List<Film> Films { get; private set; }
-
-        public List<Genre> Genres { get; private set; }
 
         public List<BookingItem> BookingList { get; private set; }
 
@@ -27,6 +23,16 @@ namespace TicketBooking
         public void AddFilms(List<Film> films)
         {
             Films = films;
+        }
+
+        public void AddBookings(List<BookingItem> bookings)
+        {
+            BookingList = bookings;
+        }
+
+        public void AddUnbookings(List<BookingItem> unbookings)
+        {
+            UnbookingList = unbookings;
         }
 
         public void UpdateList(List<Film> newList)

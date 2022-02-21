@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace TicketBooking
+﻿namespace TicketBooking
 {
     internal class Film
     {
@@ -20,7 +14,7 @@ namespace TicketBooking
 
         public List<Comment> Comments { get; private set; }
 
-        public Film(Guid id, string title, int freeSeats, string genre, double rating = 0)
+        public Film(Guid id, string title, int freeSeats, string genre, double rating = 0, List<Comment> comments = null)
         {
             Id = id;
             Title = title;
@@ -28,7 +22,7 @@ namespace TicketBooking
             Genre = genre;
             Rating = rating;
 
-            Comments = new();
+            Comments = comments;
 
         }
 
